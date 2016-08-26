@@ -11,9 +11,10 @@
 #import "JMSingleCell.h"
 #import "JMSearchTool.h"
 #import "JMSearchSingleGoodsModel.h"
+#import "JMSearchModel.h"
 @interface JMSingleGoodsViewController ()<UICollectionViewDataSource,UICollectionViewDelegateFlowLayout>
-@property (nonatomic, weak) UICollectionView *collectionView;
-@property (nonatomic, strong) NSMutableArray *singleModels;
+
+
 @end
 
 @implementation JMSingleGoodsViewController
@@ -27,35 +28,39 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    [self loadData];
+//    [self loadData];
     [self initializedSubviews];
+        [self.navigationController setNavigationBarHidden:NO animated:YES];
 }
-- (void)viewWillAppear:(BOOL)animated
-{
-    [super viewWillAppear:animated];
-    [self.navigationController setNavigationBarHidden:NO animated:YES];
-    
-}
-- (void)viewWillDisappear:(BOOL)animated
-{
-    [self.navigationController setNavigationBarHidden:YES animated:YES];
-    [super viewWillDisappear:animated];
+//- (void)viewWillAppear:(BOOL)animated
+//{
+//    [super viewWillAppear:animated];
 
-
-}
+//    
+//}
+//- (void)viewWillDisappear:(BOOL)animated
+//{
+//    [self.navigationController setNavigationBarHidden:YES animated:YES];
+//    [super viewWillDisappear:animated];
+//
+//
+//}
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
 #pragma mark - loadData
-- (void)loadData
-{
-    [self.singleModels  addObjectsFromArray:[JMSearchTool createSearchSingleGoodsModel]];
-}
+//- (void)loadData
+//{
+//    [self.singleModels  addObjectsFromArray:[JMSearchTool createSearchSingleGoodsModel]];
+//}
 #pragma mark - initialized subviews
 - (void)initializedSubviews
 {
-    self.title = @"底装";
+
+//    NSLog(@"%@",self.searchModel);
+    JMSearchModel *model = [[JMSearchModel alloc]init];
+    self.title = model.name;
     
     UICollectionViewFlowLayout *flowLayout = [[UICollectionViewFlowLayout alloc]init];
     flowLayout.scrollDirection = UICollectionViewScrollDirectionVertical;
@@ -74,23 +79,9 @@
     [self.view addSubview:collectionView];
     _collectionView = collectionView;
     
-    //
-    UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
-    btn.frame = CGRectMake(0, 0, 28, 28);
-    [btn setImage:[UIImage imageNamed:@"mobile-back"] forState:UIControlStateNormal];
-    [btn addTarget:self action:@selector(ShareUrl) forControlEvents:UIControlEventTouchUpInside];
-    UIBarButtonItem *backItem = [[UIBarButtonItem alloc]initWithCustomView:btn];
-    self.navigationItem.leftBarButtonItem = backItem;
 }
--(void)ShareUrl{
 
-    
 
-}
-- (void)backAction:(UIButton *)btn
-{
-    [self.navigationController popViewControllerAnimated:YES];
-}
 #pragma mark - UICollectionViewDataSource
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
 {
@@ -113,13 +104,11 @@
 }
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath
 {
-    if (indexPath.row == 0) {
+   
         JMSearchSingleGoodsModel *model = self.singleModels[indexPath.item];
         JMProductDetailViewController *product = [JMProductDetailViewController new];
         product.productID = model.productID;
         [self.navigationController pushViewController:product animated:YES];
-    }else {
-        [UIAlertController showAlertTips:@"没有抓取数据" onView:self.view alertStyle:UIAlertControllerStyleAlert timeInterval:1.0 compeletion:nil];
-    }
+  
 }
 @end

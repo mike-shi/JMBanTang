@@ -109,7 +109,10 @@
 #pragma mark - UICollectionViewDelegate
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath
 {
-    [self.delegate didSelectedItem:indexPath];
+    JMSearchModel *model = self.searchModel[indexPath.item];
+    
+    
+    [self.delegate didSelectedItem:model.name];
 }
 - (void)setCategoryModel:(NSMutableArray<JMSearchModel *> *)categoryModel
 {

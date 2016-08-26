@@ -10,8 +10,11 @@
 
 #import "MBProgressHUD+MJ.h"
 #import "JMMainViewController.h"
-
-
+#import <BmobSDK/Bmob.h>
+#import "NSString+Hash.h"
+#import "UIWindow+Extension.h"
+#import "ReGetPwd.h"
+#import "MKregistView.h"
 #define Global_tintColor [UIColor colorWithRed:0 green:(190 / 255.0) blue:(12 / 255.0) alpha:1]
 
 
@@ -106,6 +109,7 @@
     forgetBtn.titleLabel.font = [UIFont systemFontOfSize:12];
     [forgetBtn setTitleColor:Global_tintColor forState:UIControlStateNormal];
     [self.view addSubview:forgetBtn];
+    [forgetBtn addTarget:self action:@selector(forgetMiMa) forControlEvents:UIControlEventTouchUpInside];
     
     // 新用户
     UIButton *newBtn = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -119,47 +123,70 @@
     
 } 
 
+-(void)forgetMiMa{
+
+    ReGetPwd *getPwd = [[ReGetPwd alloc]init];
+    
+    [self.navigationController pushViewController:getPwd animated:YES];
+    
+
+}
 // 点击登陆按钮
 - (void)loginBtnClick
 {
+
+  [self windowDidClick];
     
-//    [MBProgressHUD showMessage:@"正在加载中..."];
-//    NSString *phoneNum = self.phoneText.text;
-//    NSString *passWord = self.passWordText.text;
+//    + (void)loginWithUsernameInBackground:(NSString *)username
+////password:(NSString *)password
+//block:(BmobUserResultBlock)block;
+                NSString *currentMiWen = [[_passWordText.text md5String] md5String];
+    [BmobUser loginWithUsernameInBackground:_phoneText.text password:currentMiWen block:^(BmobUser *user, NSError *error) {
+       
+        if (user) {
+            NSLog(@"%@",user);
+                                UIWindow *window = [UIApplication sharedApplication].keyWindow;
+                                [window switchRootViewController];
+        } else {
+            NSLog(@"%@",error);
+                            [MBProgressHUD showError:@"用户名或密码错误"];
+        }
+        
+    }];
+    
+//    BmobQuery  *bquery = [BmobQuery queryWithClassName:@"userInfo"];
 //    
-//    NSDictionary *para = @{ @"PhoneNumber": phoneNum,
-//                            @"Password": passWord};
+//    [bquery findObjectsInBackgroundWithBlock:^(NSArray *array, NSError *error) {
+//        for (BmobObject *obj in array) {
+//            
+//            NSString *exsitPhone = [obj objectForKey:@"phoneNumber"];
+//            
+//            NSString *existPwd = [obj objectForKey:@"passWord"];
+//            
+//            NSString *currentMiWen = [[_passWordText.text md5String] md5String];
+//            
+//            BOOL isEuqalMima = [currentMiWen isEqualToString:existPwd];
+//            
+//            BOOL isEqualPhone = [_phoneText.text isEqualToString:exsitPhone];
+//            
+//            
+//            
+//            if (isEqualPhone && isEuqalMima) {
+//                
+//                    UIWindow *window = [UIApplication sharedApplication].keyWindow;
+//                    [window switchRootViewController];
+//              
+////                return ;
+//            }else{
 //
-//    NSString *url = [NSString stringWithFormat:@"%@LoginUser",textURL];
-//
-//    [XYBHttpTool post:url params:para success:^(id responseObj) {
-//        // 获取服务器返回的信息
-//        NSString *statusStr = responseObj[@"status"];
-//        int status = statusStr.intValue;
-//        if (status == 0) { // 登陆成功
-//            [MBProgressHUD hideHUD];
-//            NSDictionary *userDic = responseObj[@"user"];
-//            XYBAccount *account = [XYBAccountTool returnAccountWithDic:userDic];
-//            [XYBAccountTool save:account];
-//            UIWindow *window = [UIApplication sharedApplication].keyWindow;
-//            XYBTabBarViewController *tabbar = [[XYBTabBarViewController alloc] init];
-//            window.rootViewController = tabbar;
-//            [XYBSavingTool setBool:YES key:isLogin];
-//        } else if (status == 2){
-//            [MBProgressHUD hideHUD];
-//            [MBProgressHUD showError:@"无该手机号，请输入正确手机号"];
-//        } else {
-//            [MBProgressHUD hideHUD];
-//            [MBProgressHUD showError:@"密码错误，请输入正确密码"];
+//                [MBProgressHUD showError:@"用户名或密码错误"];
+//            }
 //        }
-//    } failure:^(NSError *error) {
-//        NSLog(@"%@", error);
-//        [MBProgressHUD hideHUD];
-//        [MBProgressHUD showError:@"连接超时，请稍后重试"];
 //    }];
-    UIWindow *window = [UIApplication sharedApplication].keyWindow;
-    JMMainViewController *tabbar = [[JMMainViewController alloc] init];
-    window.rootViewController = tabbar;
+
+
+    
+
 }
 
 
@@ -173,6 +200,10 @@
 
 - (void)newAccountDidClick
 {
+    MKregistView *regist = [[MKregistView alloc]init];
+    [self.navigationController pushViewController:regist animated:YES];
+    
+    
 //    [self.navigationController pushViewController:[[XYBRegisteredAllViewController alloc] init] animated:YES];
 }
 

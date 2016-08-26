@@ -13,6 +13,9 @@
 #import "JMUserRecommendProductModel.h"
 #import "JMAuthor.h"
 @implementation JMUserRecommendModel
+
+
+
 + (instancetype)userRecommendWithDictionary:(NSDictionary *)dict
 {
     JMUserRecommendModel *model = [JMUserRecommendModel new];

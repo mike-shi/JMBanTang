@@ -51,7 +51,7 @@
 {
     _model = model;
     if (_model) {
-        [self.imageView  sd_setImageWithURL:[NSURL URLWithString:_model.imageUrl] placeholderImage:[UIImage imageNamed:@"placeHolder"]];
+        [self.imageView  sd_setImageWithURL:[NSURL URLWithString:_model.pic] placeholderImage:[UIImage imageNamed:@"placeHolder"]];
         self.likesCountLabel.text = [NSString stringWithFormat:@"%@喜欢",_model.likeNumbers];
     }
 }

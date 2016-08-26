@@ -7,7 +7,11 @@
 //
 
 #import <UIKit/UIKit.h>
-@class JMProductRecommendModel;
+
+@class JMSearchSingleGoodsModel;
+
 @interface JMPersonCenterListCell : UICollectionViewCell
-+ (instancetype)cellWithCollectionView:(UICollectionView *)collectionView atIndexPath:(NSIndexPath *)indexPath andModel:(JMProductRecommendModel *)model;
+
++ (instancetype)cellWithCollectionView:(UICollectionView *)collectionView atIndexPath:(NSIndexPath *)indexPath andModel:(JMSearchSingleGoodsModel *)model;
+
 @end

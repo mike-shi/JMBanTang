@@ -22,8 +22,12 @@
 #import "JMSearchSingleGoodsModel.h"
 #import "JMUserRecommendTool.h"
 #import "JMUserRecommendModel.h"
+#import "JMProductRecommendModel.h"
 #import "JMProductRecommend.h"
+#import "UpdatePersonaInfo.h"
 
+#import "JMProductDetailViewController.h"
+#import "JMSetUpInfo.h"
 enum ShowCollectionViewType {
     /// 单品
     SingleMode = 10,
@@ -34,7 +38,7 @@ enum ShowCollectionViewType {
     /// 发布
     PublishMode
 };
-@interface JMMineViewController ()<JMTitleScrollViewDelegate,UIImagePickerControllerDelegate,UINavigationControllerDelegate,UICollectionViewDataSource,UICollectionViewDelegateFlowLayout>
+@interface JMMineViewController ()<JMTitleScrollViewDelegate,UIImagePickerControllerDelegate,UINavigationControllerDelegate,UICollectionViewDataSource,UICollectionViewDelegateFlowLayout,UICollectionViewDelegate>
 @property (nonatomic, weak)JMPersonCenterHeaderImageView *topView;
 @property (nonatomic, weak)UIImageView *headerImageView;
 @property (nonatomic, weak)JMTitleScrollView *titleView;
@@ -46,8 +50,8 @@ enum ShowCollectionViewType {
 @property (nonatomic, weak)UIButton *settingBtn;
 @property (nonatomic, assign)enum ShowCollectionViewType collectionViewType;
 
-@property (nonatomic, strong)NSMutableArray *singleList;//SearchSingleGoodsModel
-@property (nonatomic, strong)NSMutableArray *listArray;
+@property (nonatomic, strong)NSArray *singleList;//SearchSingleGoodsModel
+@property (nonatomic, strong)NSArray *listArray;
 @property (nonatomic, strong)NSMutableArray *interationArray;//UserREcommendModel
 
 
@@ -55,17 +59,17 @@ enum ShowCollectionViewType {
 
 @implementation JMMineViewController
 #pragma mark - forcasted loading
-- (NSMutableArray *)singleList
+- (NSArray *)singleList
 {
     if (!_singleList) {
-        _singleList = [NSMutableArray array];
+        _singleList = [NSArray array];
     }
     return _singleList;
 }
-- (NSMutableArray *)listArray
+- (NSArray *)listArray
 {
     if (!_listArray) {
-        _listArray = [NSMutableArray array];
+        _listArray = [NSArray array];
     }
     return _listArray;
     
@@ -123,9 +127,17 @@ enum ShowCollectionViewType {
 #pragma mark - load data
 - (void)loadData
 {
-    [self.singleList addObjectsFromArray:[JMSearchTool createSearchSingleGoodsModel]];
-    [self.listArray addObjectsFromArray:[[JMProductRecommend alloc] createProductRecommendModelAtCategoryIndex:0]];
-    [self.interationArray addObjectsFromArray:[JMUserRecommendTool createUserRecommendModelWithListID:@"1872"]];
+    [JMSearchTool getSearchWithText:@"原创" completionHandler:^(id obj) {
+       
+        NSArray *dataArray = obj[@"data"];
+        
+        NSArray *arr = [JMSearchSingleGoodsModel objectArrayWithKeyValuesArray:dataArray];
+        
+        //                [singleGoods addObjectsFromArray:arr];
+        _singleList = arr;
+        [self.showCollectionView reloadData];
+    }];
+
 }
 #pragma mark - initialized subviews
 - (void)initializedSubviews
@@ -137,31 +149,20 @@ enum ShowCollectionViewType {
     
     //backImgView
     UIImageView *backImageView = [[UIImageView alloc]initWithFrame:CGRectMake(0, 0, JMDeviceWidth, 230)];
-    backImageView.image = [UIImage imageNamed:@"PersonCenterbackImage"];
+    backImageView.image = [UIImage imageNamed:@"BgImage2"];
     [self.view addSubview:backImageView];
     _backImageView = backImageView;
     
     //topview
     JMPersonCenterHeaderImageView *topView = [[JMPersonCenterHeaderImageView alloc]initWithFrame:CGRectMake(0, 0, JMDeviceWidth, 230)];
+    
+    
     topView->clickedImage =^(void){
-        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"更换头像" message:@"选取一张喜欢的图片" preferredStyle:UIAlertControllerStyleActionSheet];
-        [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
-        [alert addAction:[UIAlertAction actionWithTitle:@"open camera" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            NSLog(@"camera");
-            UIImagePickerController *imagePicker = [UIImagePickerController new];
-            imagePicker.delegate = self;
-            if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
-                imagePicker.sourceType = UIImagePickerControllerSourceTypeCamera;
-                [self presentViewController:imagePicker animated:YES completion:nil];
-            }else {
-                NSLog(@"nothing");
-            }
-        }]];
-        [alert addAction:[UIAlertAction actionWithTitle:@"open album" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            NSLog(@"album");
-            [self presentViewController:[[JMNaviViewController alloc] initWithRootViewController:[JMAlbumViewController new]] animated:YES completion:nil];
-        }]];
-        [self presentViewController:alert animated:YES completion:nil];
+
+        UpdatePersonaInfo *info = [[UpdatePersonaInfo alloc]init];
+        
+        [self.navigationController pushViewController:info animated:YES];
+        
     };
     [collectionHeaderView addSubview:topView];
     _topView = topView;
@@ -227,8 +228,8 @@ enum ShowCollectionViewType {
     navBar.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.0];
     //
     UIButton *genderBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    [genderBtn setImage:genderImageNormal forState:UIControlStateNormal];
-    [genderBtn setImage:genderImageHl forState:UIControlStateHighlighted];
+    [genderBtn setImage:genderImageHl forState:UIControlStateNormal];
+    [genderBtn setImage:genderImageNormal forState:UIControlStateHighlighted];
     genderBtn.frame = CGRectMake(20, 30, 24, 24);
     [genderBtn addTarget:self action:@selector(clickedGenderBtn:) forControlEvents:UIControlEventTouchUpInside];
     [navBar addSubview:genderBtn];
@@ -236,10 +237,10 @@ enum ShowCollectionViewType {
     
     //
     UIButton *settingBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    [settingBtn setImage:[UIImage imageNamed:@"iconfont-shezhi"] forState:UIControlStateNormal];
-    [settingBtn setImage:[UIImage imageNamed:@"iconfont-shezhi_hl"] forState:UIControlStateHighlighted];
+    [settingBtn setImage:[UIImage imageNamed:@"iconfont-shezhi_hl"] forState:UIControlStateNormal];
+    [settingBtn setImage:[UIImage imageNamed:@"iconfont-shezhi"] forState:UIControlStateHighlighted];
     settingBtn.frame = CGRectMake(JMDeviceWidth-24-20, 30, 24, 24);
-    [settingBtn addTarget:self action:@selector(clickedSettingBtn:) forControlEvents:UIControlEventTouchUpInside];
+    [settingBtn addTarget:self action:@selector(clickedSettingBtn) forControlEvents:UIControlEventTouchUpInside];
     [navBar addSubview:settingBtn];
     _settingBtn = settingBtn;
     
@@ -251,8 +252,13 @@ enum ShowCollectionViewType {
 {
     [self presentViewController:[[JMNaviViewController alloc] initWithRootViewController:[JMGenderSelectedViewController new]] animated:YES completion:nil];
 }
-- (void)clickedSettingBtn:(UIButton *)btn
+- (void)clickedSettingBtn
 {
+    JMSetUpInfo *setup = [[JMSetUpInfo alloc]init];
+    
+    [self.navigationController pushViewController:setup animated:YES];
+    
+    
     
 }
 #pragma mark - JMTitleScrollViewDelegate
@@ -276,6 +282,21 @@ enum ShowCollectionViewType {
     }
     [_showCollectionView reloadData];
 }
+-(void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath{
+  if (_collectionViewType == SingleMode) {
+    JMSearchSingleGoodsModel *single = _singleList[indexPath.row];
+   
+      JMProductDetailViewController *detailPro = [[JMProductDetailViewController alloc]init];
+      
+      detailPro.productID = single.productID;
+      
+      [self.navigationController pushViewController:detailPro animated:YES];
+      
+      
+  }
+
+}
+
 #pragma mark - UICollectionViewDataSource
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section
 {
@@ -411,16 +432,16 @@ enum ShowCollectionViewType {
     }
 }
 #pragma mark - UIImagePickerControllerDelegate
-- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info
-{
-    [_topView changeAvatar:info[UIImagePickerControllerOriginalImage]];
-    [self dismissViewControllerAnimated:YES completion:nil];
-}
-- (void)changeAvatar:(NSNotification *)ntf
-{
-    NSDictionary *dict = ntf.userInfo;
-    [_topView changeAvatar:dict[@"image"]];
-}
+//- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info
+//{
+//    [_topView changeAvatar:info[UIImagePickerControllerOriginalImage]];
+//    [self dismissViewControllerAnimated:YES completion:nil];
+//}
+//- (void)changeAvatar:(NSNotification *)ntf
+//{
+//    NSDictionary *dict = ntf.userInfo;
+//    [_topView changeAvatar:dict[@"image"]];
+//}
 - (void)openTheCamera
 {
     UIImagePickerController *imagePicker = [UIImagePickerController new];

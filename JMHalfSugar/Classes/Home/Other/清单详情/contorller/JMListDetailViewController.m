@@ -17,17 +17,22 @@
 #import "JMMoveToMyFavoriteViw.h"
 
 #import "JMListDetailTool.h"
+#import "JMListModel.h"
+
 #import "JMUserRecommendTool.h"
 #import "JMUserRecommendModel.h"
 #import "JMUserRecommendProductModel.h"
 #import "JMListDetailProductModel.h"
 #import "JMListModel.h"
+#import "UITableView+SDAutoTableViewCellHeight.h"
+#import "MikeBarButton.h"
+#import "ShareToSIna.h"
 typedef enum : NSUInteger {
     BanTangGoodSelectMode,
     UserRecommendMode,
 } TableViewMode;
-@interface JMListDetailViewController ()<JMSegmentViewDelegate,UITableViewDataSource,UITableViewDelegate,JMListDetailCellDelegate,JMListRecommendCellDelegate>
-@property (nonatomic, weak) UITableView *tableView;
+@interface JMListDetailViewController ()<JMListDetailCellDelegate,JMListRecommendCellDelegate>
+
 @property (nonatomic, weak) JMListHeaderView *headerview;
 @property (nonatomic, weak) JMSegmentView *segmentView;
 @property (nonatomic, strong) JMListModel *listModel;
@@ -40,122 +45,128 @@ typedef enum : NSUInteger {
 @property (nonatomic, strong)UIView *navBackView;
 @property (nonatomic, strong)UIView *tableHeadView;
 
+@property(nonatomic,strong)NSArray *productArr;
 
+//CustomNavigationBar
+@property(nonatomic,strong)UIButton *backBtn;
+
+@property(nonatomic,strong)UIView *customNavigationBar;
+@property(nonatomic,strong)UIButton *navShareBtn;
 @end
 @implementation JMListDetailViewController
 
+
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view.
+
     self.view.backgroundColor = [UIColor whiteColor];
     self.automaticallyAdjustsScrollViewInsets = NO;
 
-    //
-    [self createCustomBar];
-    //
-    [self loadData];
-    //
-    if (_listModel) {
-        [self initializedSubviews];
-    }else {
-        [UIAlertController showAlertTips:@"nothing" onView:self.view alertStyle:UIAlertControllerStyleAlert timeInterval:1.0f compeletion:^{
-            [self.navigationController popToRootViewControllerAnimated:YES];
-        }];
-    }
+    NSLog(@"%@---list",self.listID);
+
+    [self initializedSubviews];
+//    [self setUpCustomNavigationBar];
+    
+
 }
 
-#pragma mark - loadData
-- (void)loadData
-{
-    _listModel = [JMListDetailTool createListModelWithListID:_listID];
-    if (_listModel != nil) {
-        _recommendArray = [NSMutableArray arrayWithArray:[JMUserRecommendTool createUserRecommendModelWithListID:_listID]];
-    }
+-(void)viewWillAppear:(BOOL)animated{
+
+    [super viewWillAppear:animated];
+    
+
+    [self.navigationController setNavigationBarHidden:NO];
 }
+
+-(void)viewWillDisappear:(BOOL)animated{
+
+    [super viewWillDisappear:animated];
+    
+     self.navigationController.navigationBar.alpha = 1;
+}
+
 #pragma mark - initialized subviews
 - (void)initializedSubviews
 {
-    JMListHeaderView *headerView = [[JMListHeaderView alloc]initWithFrame:CGRectMake(0, 0, JMDeviceWidth, 0) withTitle:_listModel.title subTitle:_listModel.detailText andImage:_image];
-    _headerview = headerView;
-    [self buildSegmentView];
-    CGRect frame = headerView.frame;
-    frame.size.height +=45;
-    headerView.frame = frame;
 
     
-    
-    UITableView *tableView = [[UITableView alloc]initWithFrame:CGRectMake(0, 0, JMDeviceWidth, JMDeviceHeight) style:UITableViewStylePlain];
-    tableView.delegate = self;
-    tableView.dataSource = self;
-    tableView.tableHeaderView = headerView;
-    [self.view addSubview:tableView];
-    _tableView = tableView;
-    _headerview = headerView;
+    [JMUserRecommendTool getSearchWithListID:_listID completionHandler:^(id obj) {
+        
+        JMListModel *model = [JMListModel objectWithKeyValues:obj[@"data"]];
+  
+//        _listModel = model;
+        
+        NSArray *arr = [JMListDetailProductModel objectArrayWithKeyValuesArray:model.product_list];
+        
+        _productArr = arr;
 
-    
-    [self.view bringSubviewToFront:_navBackView];
-    [self.view bringSubviewToFront:_customBar];
+        JMListHeaderView *headerView = [[JMListHeaderView alloc]initWithFrame:CGRectMake(0, 0, JMDeviceWidth, 0) withTitle:model.title subTitle:model.desc andImage:_image];
+        _headerview = headerView;
+        
+        
+        self.navigationItem.title = model.title;
+        
+        self.navigationItem.rightBarButtonItem = [UIBarButtonItem itemWithTarget:self action:@selector(shareUrl) image:@"share_hl" highImage:@"share_normal"];
+        
+//        UIView *navView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, KScreenWith, 64)];
+//        [headerView addSubview:navView];
+//        navView.backgroundColor = [UIColor whiteColor];
+//        _customNavigationBar = navView;
+//        
+//        UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+//        backBtn.frame = CGRectMake(10, 0, 28, 28);
+//        [backBtn setImage:[UIImage imageNamed:@"mobile-back"] forState:UIControlStateNormal];
+//        [backBtn setImage:[UIImage imageNamed:@"mobile-back"] forState:UIControlStateHighlighted];
+//        [backBtn addTarget:self action:@selector(backAction) forControlEvents:UIControlEventTouchUpInside];
+//        backBtn.centerY = 42;
+//        [navView addSubview:backBtn];
+//        _backBtn = backBtn;
+//        
+//        
+//        
+//        UIButton *shareBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+//        shareBtn.frame = CGRectMake(JMDeviceWidth-28-10, 0, 28, 28);
+//        [shareBtn setImage:[UIImage imageNamed:@"share_hl"] forState:UIControlStateNormal];
+//        [shareBtn setImage:[UIImage imageNamed:@"share_normal"] forState:UIControlStateHighlighted];
+//        [shareBtn addTarget:self action:@selector(shareUrl) forControlEvents:UIControlEventTouchUpInside];
+//        shareBtn.centerY = 42;
+//        [navView addSubview:shareBtn];
+//        _navShareBtn = shareBtn;
+//        
+        CGRect frame = _headerview.frame;
+        frame.size.height +=45;
+        _headerview.frame = frame;
+        
+        self.tableView.tableHeaderView = _headerview;
+        
+          [self.tableView reloadData];
+  
+    }];
 }
-- (void)buildSegmentView
-{
-    JMSegmentView *segmentView = [[JMSegmentView alloc]initWithFrame:CGRectMake(0, _headerview.height, JMDeviceWidth, 45) firstTitle:@"半糖精选" secondTitle:@"用户推荐"];
-    _segmentView.backgroundColor = [UIColor whiteColor];
-    segmentView.delegate = self;
-    [_headerview addSubview:segmentView];
-    _segmentView = segmentView;
-}
-- (void)createCustomBar
-{
-    [self.navigationController setNavigationBarHidden:YES];
-    
-    self.navigationController.interactivePopGestureRecognizer.delegate = nil;
-    UIView *customeBar = [[UIView alloc]initWithFrame:CGRectMake(0, 0, JMDeviceWidth, 64)];
-    customeBar.backgroundColor = [UIColor clearColor];
-    
-    UIView *navBackView = [[UIView alloc]initWithFrame:customeBar.frame];
-    navBackView.backgroundColor = [UIColor colorWithHexString:@"EC5252" alpha:0.0];
-    [self.view addSubview:navBackView];
-    [self.view addSubview:customeBar];
-    
-    _customBar = customeBar;
-    _navBackView = navBackView;
-    
-    //title
-    UILabel *titleLabel = [[UILabel alloc]initWithFrame:CGRectMake(JMDeviceWidth/2-36, 33, 18*10, 20)];
-    titleLabel.hidden = YES;
-    titleLabel.text = @"Shopping list";
-    titleLabel.textColor = [UIColor colorWithWhite:1.0 alpha:0.0];
-    titleLabel.font = [UIFont systemFontOfSize:18];
-    [_customBar addSubview:titleLabel];
-    [titleLabel autoAlignAxis:ALAxisHorizontal toSameAxisOfView:_customBar withOffset:5];
-    [titleLabel autoAlignAxisToSuperviewAxis:ALAxisVertical];
 
-    UIButton *shareBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    shareBtn.frame = CGRectMake(JMDeviceWidth-39, 30, 20, 20);
-    [shareBtn setImage:[UIImage imageNamed:@"goodsDetail_share"] forState:UIControlStateNormal];
-    [shareBtn addTarget:self action:@selector(shareBtnAction:) forControlEvents:UIControlEventTouchUpInside];
-    [_customBar addSubview:shareBtn];
-    [shareBtn autoAlignAxis:ALAxisHorizontal toSameAxisOfView:titleLabel];
-    [shareBtn autoPinEdgeToSuperviewEdge:ALEdgeTrailing withInset:20];
-    
-    UIButton *favBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    favBtn.frame = CGRectMake(476/2, 30, 20, 20);
-    [favBtn setImage:[UIImage imageNamed:@"favorite"] forState:UIControlStateNormal];
-    [favBtn setImage:[UIImage imageNamed:@"favorite_hl" ] forState:UIControlStateSelected];
-    [favBtn addTarget:self action:@selector(favoriteBtnAction:) forControlEvents:UIControlEventTouchUpInside];
-    [_customBar addSubview:favBtn];
-    [favBtn autoSetDimensionsToSize:CGSizeMake(20, 20)];
-    [favBtn autoAlignAxis:ALAxisHorizontal toSameAxisOfView:titleLabel];
-    [favBtn autoPinEdgeToSuperviewEdge:ALEdgeRight withInset:shareBtn.width+20+20];
-    
-    UIButton *backBtn  = [UIButton buttonWithType:UIButtonTypeCustom];
-    backBtn.frame = CGRectMake(17, 30, 20, 20);
-    [backBtn setImage:[UIImage imageNamed:@"back"] forState:UIControlStateNormal];
-    [backBtn addTarget:self action:@selector(backToController:) forControlEvents:UIControlEventTouchUpInside];
-    [_customBar addSubview:backBtn];
-    [backBtn autoAlignAxis:ALAxisHorizontal toSameAxisOfView:titleLabel];
-    [backBtn autoPinEdgeToSuperviewEdge:ALEdgeLeft withInset:17];
+-(void)backAction{
+
+    [self.navigationController popToRootViewControllerAnimated:YES];
 }
+-(void)shareUrl{
+
+    [JMUserRecommendTool getSearchWithListID:_listID completionHandler:^(id obj) {
+        
+        JMListModel *model = [JMListModel objectWithKeyValues:obj[@"data"]];
+    
+
+        ShareToSIna *sina = [[ShareToSIna alloc]init];
+
+        sina.share_url = model.pic;
+        sina.share_title = model.title;
+    
+    [self.navigationController pushViewController:sina animated:YES];
+    
+    }];
+
+}
+
+
 #pragma mark - NavBtnAction
 - (void)favoriteBtnAction:(UIButton *)sender
 {
@@ -170,89 +181,51 @@ typedef enum : NSUInteger {
         }];
     }
 }
-- (void)shareBtnAction:(UIButton *)sender
-{
-    [UIAlertController showAlertTips:@"Nothing can be catched" onView:self.view alertStyle:UIAlertControllerStyleAlert timeInterval:1.0f compeletion:nil];
-}
-- (void)backToController:(UIButton *)btn
-{
-    [self.navigationController popToRootViewControllerAnimated:YES];
-}
-#pragma mark - JMSegmentViewDelegate
-- (void)clickSegmentViewAtIndex:(NSInteger)index
-{
-    if (_tableViewMode == BanTangGoodSelectMode) {
-        _tableViewMode = UserRecommendMode;
-    }else {
-        _tableViewMode = BanTangGoodSelectMode;
-    }
-    [_tableView reloadData];
-}
+
+
+
 #pragma mark - UITableViewDataSource
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
-{
-    
-    return 1;
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
+
+
+    return _productArr.count;
 }
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
-{
-    if (_tableViewMode == BanTangGoodSelectMode) {
-        if (self.listModel.prouctArray !=nil) {
-            return _listModel.prouctArray.count;
-        }else {
-            return 1;
-        }
-    }else {
-        if (_recommendArray != nil) {
-            return _recommendArray.count;
-        }else {
-            return 1;
-        }
-    }
-}
+
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if (_tableViewMode == BanTangGoodSelectMode) {
-        JMListDetailProductModel *model =  _listModel.prouctArray[indexPath.section];
-        JMListDetailCell *cell = [JMListDetailCell cellWithTableView:tableView atIndexPath:indexPath withModel:model];
+   
+      JMListDetailProductModel *model =  _productArr[indexPath.row];
+    
+        JMListDetailCell *cell = [JMListDetailCell cellWithTableView:tableView];
+
+  
+        cell.model = model;
+
         cell.delegate = self;
+
         return cell;
-    }else {
-        JMListRecommendCell *cell = [JMListRecommendCell cellWithTableView:tableView atIndexPath:indexPath withModel:self.recommendArray[indexPath.section]];
-        cell.delegate = self;
-        return cell;
-    }
 }
 #pragma mark -UITableViewDelegate
-- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
-    if (_tableViewMode == BanTangGoodSelectMode) {
-        JMListDetailProductModel *model = _listModel.prouctArray[indexPath.section];
-        if (model.cellHeight > 0) {
-            return model.cellHeight;
-        }
-        return 400;
-    }else {
-        JMUserRecommendModel *model = _recommendArray[indexPath.section];
-        if (model.cellHeight>0) {
-            return model.cellHeight;
-        }
-        return 200;
-    }
-}
-- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if (section != 0) {
-        return 10;
-    }else {
-        return 0;
-    }
+    // >>>>>>>>>>>>>>>>>>>>> * cell自适应步骤2 * >>>>>>>>>>>>>>>>>>>>>>>>
+    /* model 为模型实例， keyPath 为 model 的属性名，通过 kvc 统一赋值接口 */
+    
+    return [self.tableView cellHeightForIndexPath:indexPath model:self.productArr[indexPath.row] keyPath:@"model" cellClass:[JMListDetailCell class] contentViewWidth:[self cellContentViewWith]];
 }
-- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
+
+- (CGFloat)cellContentViewWith
 {
-    UIView *cellHeaderView = [[UIView alloc]init];
-    cellHeaderView.backgroundColor = [UIColor colorWithHexString:@"F5F5F5"];
-    return cellHeaderView;
+    CGFloat width = [UIScreen mainScreen].bounds.size.width;
+    
+    // 适配ios7
+    if ([UIApplication sharedApplication].statusBarOrientation != UIInterfaceOrientationPortrait && [[UIDevice currentDevice].systemVersion floatValue] < 8) {
+        width = [UIScreen mainScreen].bounds.size.height;
+    }
+    return width;
 }
+
+
 #pragma mark - JMListDetailCellDelegate
 - (void)checkProductDetails:(NSInteger)productID
 {
@@ -278,16 +251,16 @@ typedef enum : NSUInteger {
         }
         case MoveToOtherFavoriteList_type:
         {
-            JMListDetailProductModel *model = _listModel.prouctArray[0];
+            JMListDetailProductModel *model = _listModel.product_list[0];
             JMMoveToMyFavoriteViw *moveView = [[JMMoveToMyFavoriteViw alloc]initWithFrame:CGRectMake(0, JMDeviceHeight, JMDeviceWidth, JMDeviceHeight)];
             [moveView showWithAnimation:model.productID];
             break;
         }
         case BuyThisProduct_type:
         {
-            JMListDetailProductModel *product = _listModel.prouctArray[0];
+            JMListDetailProductModel *product = _listModel.product_list[0];
             JMBuyProductViewController *buyPro = [[JMBuyProductViewController alloc]init];
-            buyPro.productURL = product.productUrl;
+            buyPro.productURL = product.url;
             [self.navigationController pushViewController:buyPro animated:YES];
         }
         default:
@@ -329,20 +302,30 @@ typedef enum : NSUInteger {
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
     CGFloat scrollY = scrollView.contentOffset.y;
-    NSLog(@"%lf",scrollY);
-    if (scrollY>= 0 && scrollY < _headerview.height-64-_segmentView.height) {
-        _navBackView.backgroundColor = [UIColor colorWithHexString:@"EC5252" alpha:scrollY/(_headerview.height-64-_segmentView.height)];
-        [_segmentView removeFromSuperview];
-        _segmentView.y = _headerview.height-_segmentView.height;
-        [_headerview addSubview:_segmentView];
-    }else if (scrollY <= 0 ){
+    
+    
+    
+//    NSLog(@"%lf",scrollY / 300);
+    
+   _customNavigationBar.alpha = scrollY / 300;
+    
+//    if (scrollY>= 0 && scrollY < _headerview.height-64-_segmentView.height) {
+//        _navBackView.backgroundColor = [UIColor colorWithHexString:@"EC5252" alpha:scrollY/(_headerview.height-64-_segmentView.height)];
+//        [_segmentView removeFromSuperview];
+//        _segmentView.y = _headerview.height-_segmentView.height;
+//        [_headerview addSubview:_segmentView];
+//    }else if (scrollY <= 0 ){
+//
+//    }else if(scrollY == _headerview.height-64-_segmentView.height ||scrollY>_headerview.height-64-_segmentView.height ) {
+//        _navBackView.backgroundColor = JMCustomBarTintColor;
+//        _segmentView.y = 64;
+//        [self.view addSubview:_segmentView];
+//        
+//    }
+//    NSLog(@"%lf",scrollView.contentOffset.y);
+    
 
-    }else if(scrollY == _headerview.height-64-_segmentView.height ||scrollY>_headerview.height-64-_segmentView.height ) {
-        _navBackView.backgroundColor = JMCustomBarTintColor;
-        _segmentView.y = 64;
-        [self.view addSubview:_segmentView];
-        
-    }
-    NSLog(@"%lf",scrollView.contentOffset.y);
+    
+    
 }
 @end

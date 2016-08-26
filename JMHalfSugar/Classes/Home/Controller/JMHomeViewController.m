@@ -321,7 +321,7 @@ static CGPoint  _currentContentOffSet;
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
     CGFloat scrollY = scrollView.contentOffset.y;
-    CGFloat scrollX = scrollView.contentOffset.x;
+//    CGFloat scrollX = scrollView.contentOffset.x;
     if(scrollView == _collectionView){
         //当前显示页面 全部加载到scrollview里面
         NSInteger contentOffsetX = _collectionView.contentOffset.x;

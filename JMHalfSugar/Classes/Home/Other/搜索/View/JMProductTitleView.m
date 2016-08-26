@@ -35,10 +35,10 @@
     self.descriptionLabel.textColor = JMSubTitleColor;
     self.proNameLabel.textColor = JMMainTitleColor;
 }
-- (void)setModel:(JMProductDetailModel *)model
+- (void)setModel:(JMListDetailProductModel *)model
 {
     _model = model;
-    NSArray *images = model.picArray;
+    NSArray *images = model.pic;
     
     UIPageControl *pageControl = [UIPageControl new];
         pageControl.numberOfPages = images.count;
@@ -56,16 +56,24 @@
     __weak JMProductTitleView *weakSelf = self;
     _scrollView.contentSize = CGSizeMake(JMDeviceWidth*images.count, 250);
 
-    
-    [images enumerateObjectsUsingBlock:^(JMPictureModel *obj, NSUInteger idx, BOOL * _Nonnull stop) {
+
+    for (int i=0; i < images.count; i++) {
+        NSString *str = images[i][@"pic"];
         UIImageView *imageView = [[UIImageView alloc]init];
-        [imageView sd_setImageWithURL:[NSURL URLWithString:obj.imageUrl] placeholderImage:[UIImage imageNamed:PlaceHolderImage]];
-        imageView.frame = CGRectMake(0+JMDeviceWidth*idx, 0, JMDeviceWidth, 250);
+        [imageView sd_setImageWithURL:[NSURL URLWithString:str] placeholderImage:[UIImage imageNamed:PlaceHolderImage]];
+
+        imageView.frame = CGRectMake(0+JMDeviceWidth*i, 0, JMDeviceWidth, 250);
         [weakSelf.scrollView addSubview:imageView];
-    }];
-    _proNameLabel.text = _model.productName;
+    }
+//    [images enumerateObjectsUsingBlock:^(JMPictureModel *obj, NSUInteger idx, BOOL * _Nonnull stop) {
+//        UIImageView *imageView = [[UIImageView alloc]init];
+//        [imageView sd_setImageWithURL:[NSURL URLWithString:obj.imageUrl] placeholderImage:[UIImage imageNamed:PlaceHolderImage]];
+//        imageView.frame = CGRectMake(0+JMDeviceWidth*idx, 0, JMDeviceWidth, 250);
+//        [weakSelf.scrollView addSubview:imageView];
+//    }];
+    _proNameLabel.text = _model.title;
     _priceLabel.text =[NSString stringWithFormat:@"$%@", _model.price];
-    _descriptionLabel.text = _model.detailText;
+    _descriptionLabel.text = _model.desc;
     CGSize size = [_descriptionLabel sizeThatFits:CGSizeMake(JMDeviceWidth-20, CGFLOAT_MAX)];
     _descriptionLabel.height = size.height;
     self.height = CGRectGetMaxY(_descriptionLabel.frame)+10;

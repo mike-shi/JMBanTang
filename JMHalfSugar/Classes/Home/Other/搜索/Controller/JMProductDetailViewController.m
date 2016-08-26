@@ -13,8 +13,19 @@
 #import "JMProductDetailModel.h"
 #import "JMCommentModel.h"
 #import "JMWebView.h"
+#import "JMSearchRelationModel.h"
 
-@interface JMProductDetailViewController ()<UITableViewDataSource,UITableViewDelegate>
+#import "JMSearchTool.h"
+#import "JMSearchSingleGoodsModel.h"
+
+#import "ShareToSIna.h"
+//#import "MIkeFlow.h"
+//#import "JMSearchTopicCell.h"
+#import "JMRelationView.h"
+#import "JMRelationProView.h"
+#import "JMListDetailViewController.h"
+
+@interface JMProductDetailViewController ()<UITableViewDataSource,UITableViewDelegate,JMRelationProViewDelagate,JMRelationViewDelegate>
 @property (nonatomic, weak) UITableView *tableView;
 @property (nonatomic, weak) UIView *customNavigationBar;
 @property (nonatomic, weak) UIButton *backBtn;
@@ -24,33 +35,122 @@
 @property (nonatomic, weak)UIView *bottomView;
 @property (nonatomic, strong)NSMutableArray *comments;
 @property(nonatomic,copy)NSString *url;
+
+//相关产品
+@property(nonatomic,strong)NSMutableArray *topicArr;
+@property(nonatomic,strong)NSMutableArray *relationArr;
+
+@property(nonatomic,strong)UICollectionView *collectionView;
+
+
 @end
 
 @implementation JMProductDetailViewController
+
+static NSString *ID = @"cell";
 static CGFloat _scrollViewheight = 0;
 static CGFloat _imageHeight = 250;
+
+
+
 - (NSMutableArray *)comments
 {
     if (!_comments) {
         _comments = [NSMutableArray new];
-        JMProductDetailModel *model = [JMPorductDetailTool createProductDetailModel];
-        [_comments addObjectsFromArray: model.comment_list];
-        _url = model.share_URL;
-//        NSLog(@"%@",str);
+        
+        [JMPorductDetailTool getSearchWithProID:self.productID completionHandler:^(id obj) {
+
+                NSArray *dataProduct = obj[@"data"][@"comment_list"];
+                NSArray *model = [JMCommentModel objectArrayWithKeyValuesArray:dataProduct];
+            
+            [_comments addObjectsFromArray: model];
+
+            
+            [self.tableView reloadData];
+        }];
+
     }
     return _comments;
 }
+
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
     self.view.backgroundColor = [UIColor whiteColor];
+   
+    
     [self initializedSubviews];
     [self setUpCustomNavigationBar];
-    NSLog(@"%@",self.productID);
+    [self comments];
+    [self loadData];
+  
+//    NSLog(@"%@",self.productID);
+   
+}
+
+-(void)loadData{
+
     
+    self.topicArr = [NSMutableArray array];
+    self.relationArr = [[NSMutableArray alloc]init];
     
+    [JMSearchTool getRelationWithObjID:self.productID completionHandler:^(id obj) {
+        
+        NSArray *topicArr = [JMSearchRelationModel objectArrayWithKeyValuesArray:obj[@"data"][@"topic"]];
+        [_topicArr addObjectsFromArray:topicArr];
+        
+        NSArray *relationArr = [JMSearchSingleGoodsModel objectArrayWithKeyValuesArray:obj[@"data"][@"product"]];
+        [_relationArr addObjectsFromArray:relationArr];
+   
+        UIView *bottomView = [[UIView alloc]init];
+        bottomView.width = KScreenWith;
+        bottomView.height = 1080 + 120 +10;
+    
+        JMRelationView *relation = [[JMRelationView alloc]initWithFrame:CGRectMake(0, 0, KScreenWith, 120) ];
+          relation.modelArr = _topicArr;
+        [bottomView addSubview:relation];
+        relation.delegate = self;
+        
+        JMRelationProView *pro = [[JMRelationProView alloc]initWithFrame:CGRectMake(0, 130, KScreenWith, 1080)];
+        [bottomView addSubview:pro];
+        
+        pro.delegate = self;
+        
+        pro.modelArr = relationArr;
+        
+        
+        _tableView.tableFooterView = bottomView;
+
+      
+
+    }];
+}
+-(void)JMRelationViewDidClick:(JMRelationView *)proView proID:(NSString *)ID Image:(NSString *)imageName{
+
+//    NSLog(@"%@---%@",ID,imageName);
+    UIImageView *view = [[UIImageView alloc]init];
+    [view sd_setImageWithURL:[NSURL URLWithString:imageName]];
+    
+    JMListDetailViewController *list = [[JMListDetailViewController alloc]init];
+    list.listID = ID;
+    list.image = view.image;
+    [self.navigationController pushViewController:list animated:YES];
+
     
 }
+
+-(void)JMRelationProViewDidClick:(JMRelationProView *)proView proID:(NSString *)ID{
+
+    NSLog(@"%@",ID);
+
+    JMProductDetailViewController *proDetailView = [[JMProductDetailViewController alloc]init];
+    proDetailView.productID = ID;
+    [self.navigationController pushViewController:proDetailView animated:YES];
+
+
+}
+
 -(void)viewWillAppear:(BOOL)animated{
 
     [super viewWillAppear:animated];
@@ -68,11 +168,24 @@ static CGFloat _imageHeight = 250;
 #pragma mark - initialized subviews
 - (void)initializedSubviews
 {
-    //titleView
-    JMProductTitleView *titleView = [[JMProductTitleView alloc]initWithFrame:CGRectMake(0, 0, JMDeviceWidth, 300)];
 
-    JMProductDetailModel *model = [JMPorductDetailTool createProductDetailModel];
-    titleView.model = model;
+    JMProductTitleView *titleView = [[JMProductTitleView alloc]initWithFrame:CGRectMake(0, 0, JMDeviceWidth, 480)];
+
+    [JMPorductDetailTool getSearchWithProID:self.productID completionHandler:^(id obj) {
+
+        
+        NSDictionary *dataProduct = obj[@"data"];
+        JMProductDetailModel *model = [JMProductDetailModel objectWithKeyValues:dataProduct];
+
+        JMListDetailProductModel *detailPro = model.product;
+        
+            _url = detailPro.url;
+        titleView.model = detailPro;
+        
+        [self.view setNeedsDisplay];
+    }];
+    
+    
     titleView.autoresizesSubviews= YES;
     _titleView = titleView;
     [self.view layoutIfNeeded];
@@ -88,52 +201,69 @@ static CGFloat _imageHeight = 250;
     _titleView.y = -_titleView.height;
     [tableView addSubview:titleView];
     _tableView = tableView;
-    
+ 
     //bottom view;
-    UIView *bottomView = [[UIView alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(tableView.frame), JMDeviceWidth, 44)];
-//    bottomView.backgroundColor = [UIColor whiteColor];
-      bottomView.backgroundColor = HWRandomColor;
-    [self.view addSubview:bottomView];
+     [self setUpBottomView];
+    
+}
+-(void)setUpBottomView{
 
+    UIView *bottomView = [[UIView alloc]initWithFrame:CGRectMake(0, CGRectGetMaxY(_tableView.frame), JMDeviceWidth, 44)];
+    bottomView.backgroundColor = [UIColor whiteColor];
+    //      bottomView.backgroundColor = HWRandomColor;
     
-//    UIButton *commentBtn = [UIButton buttonWithType:UIButtonTypeCustom ];
-//    [commentBtn setTitle:@"评论" forState:UIControlStateNormal];
-//    commentBtn.frame = CGRectMake(26, 12, 60, 20);
-//
-//    commentBtn.titleLabel.font = [UIFont fontWithName:LightFont size:15.0];
-//    [commentBtn setTitleColor:JMGrayLineColor forState:UIControlStateNormal];
-//    [commentBtn setImage:[UIImage imageNamed:@"comments"] forState:UIControlStateNormal];
-//    [commentBtn setImage:[UIImage imageNamed:@"comments"] forState:UIControlStateHighlighted];
-//    [commentBtn addTarget:self action:@selector(goToComment) forControlEvents:UIControlEventTouchUpInside];
-//    [bottomView addSubview:commentBtn];
-//    
-//    UIButton *likeBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-//    likeBtn.frame = CGRectMake(CGRectGetMaxX(commentBtn.frame)+50, 12, 60, 20);
-//    [likeBtn setTitle:@"喜欢" forState:UIControlStateNormal];
-//    [likeBtn setTitleColor:JMGrayLineColor forState:UIControlStateNormal];
-//    likeBtn.titleLabel.font = [UIFont fontWithName:LightFont size:15.0];
-//    [likeBtn setImage:[UIImage imageNamed:@"addToFavoriteBtn"] forState:UIControlStateNormal];
-//    [likeBtn setImage:[UIImage imageNamed:@"addToFavoriteBtn"] forState:UIControlStateHighlighted];
-//    [likeBtn setImage:[UIImage imageNamed:@"addToFavoriteBtn_selected"] forState:UIControlStateSelected];
-//    [likeBtn addTarget:self action:@selector(likeOrDislikeAction:) forControlEvents:UIControlEventTouchUpInside];
-//    
-//    [bottomView addSubview:likeBtn];
-//    
-//    UIButton *buyBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-//    buyBtn.frame = CGRectMake(CGRectGetMaxX(likeBtn.frame)+50, 12, 60, 20);
-//    [buyBtn setTitle:@"喜欢" forState:UIControlStateNormal];
-//    [buyBtn setTitleColor:JMGrayLineColor forState:UIControlStateNormal];
-//    buyBtn.titleLabel.font = [UIFont fontWithName:LightFont size:15.0];
-//    [buyBtn setImage:[UIImage imageNamed:@"addToFavoriteBtn"] forState:UIControlStateNormal];
-//    [buyBtn setImage:[UIImage imageNamed:@"addToFavoriteBtn"] forState:UIControlStateHighlighted];
-//    [buyBtn setImage:[UIImage imageNamed:@"addToFavoriteBtn_selected"] forState:UIControlStateSelected];
-//    [buyBtn addTarget:self action:@selector(likeOrDislikeAction:) forControlEvents:UIControlEventTouchUpInside];
+    NSArray *titleArr = @[@"评论",@"喜欢",@"购买"];
+    NSArray *imageArr = @[@"btn_group_comment",@"btn_group_like",@"icon_group_post_buy_17x17_"];
+    CGFloat BtnX = 0;
     
-//    [bottomView addSubview:buyBtn];
+    CGFloat BtnW = self.view.width/3;
+    CGFloat BTnH = 44;
     
-  
+    CGFloat paddingX=(self.view.width-3*BtnW)/(3+1);
+    for (int i=0; i<3; i++) {
+        BtnX=paddingX +(paddingX +BtnW)*i;
+        
+        UIButton *btn=[[UIButton alloc]initWithFrame:CGRectMake(BtnX, 0, BtnW, BTnH)];
+        
+        [bottomView addSubview:btn];
+        
+        [btn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+        
+        [btn setTitle:titleArr[i] forState:UIControlStateNormal];
+        
+        [btn setImage:[UIImage imageNamed:imageArr[i]] forState:UIControlStateNormal];
+        
+        btn.titleLabel.font=[UIFont systemFontOfSize:14];
+        
+        btn.tag = 40+i;
+        [btn addTarget:self action:@selector(toolBtnClick:) forControlEvents:UIControlEventTouchUpInside];
+    }
+    
+    
+    [self.view addSubview:bottomView];
+    
+    
+    
     _bottomView = bottomView;
 }
+
+-(void)toolBtnClick:(UIButton *)btn{
+
+    if (btn.tag == 42) {
+        JMWebView *web = [[JMWebView alloc]init];
+        
+        web.url = self.url;
+        
+        [self.navigationController pushViewController:web animated:YES];
+    }
+    if (btn.tag == 41) {
+        
+        [btn setImage:[UIImage imageNamed:@"btn_product_like_already_20x17_"] forState:UIControlStateSelected];
+//        btn.selected
+    }
+    
+}
+
 - (void)setUpCustomNavigationBar
 {
     UIView *navBar = [[UIView alloc]initWithFrame:CGRectMake(0, 0, JMDeviceWidth, 64)];
@@ -141,7 +271,7 @@ static CGFloat _imageHeight = 250;
     
     UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     backBtn.frame = CGRectMake(10, 0, 28, 28);
-    [backBtn setImage:[UIImage imageNamed:@"back"] forState:UIControlStateNormal];
+    [backBtn setImage:[UIImage imageNamed:@"mobile-back"] forState:UIControlStateNormal];
     [backBtn setImage:[UIImage imageNamed:@"mobile-back"] forState:UIControlStateHighlighted];
     [backBtn addTarget:self action:@selector(backAction:) forControlEvents:UIControlEventTouchUpInside];
     backBtn.centerY = 42;
@@ -150,8 +280,8 @@ static CGFloat _imageHeight = 250;
     
     UIButton *shareBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     shareBtn.frame = CGRectMake(JMDeviceWidth-28-10, 0, 28, 28);
-    [shareBtn setImage:[UIImage imageNamed:@"share_normal"] forState:UIControlStateNormal];
-    [shareBtn setImage:[UIImage imageNamed:@"share_hl"] forState:UIControlStateHighlighted];
+    [shareBtn setImage:[UIImage imageNamed:@"share_hl"] forState:UIControlStateNormal];
+    [shareBtn setImage:[UIImage imageNamed:@"share_normal"] forState:UIControlStateHighlighted];
     [shareBtn addTarget:self action:@selector(shareUrl) forControlEvents:UIControlEventTouchUpInside];
     shareBtn.centerY = 42;
     [navBar addSubview:shareBtn];
@@ -172,11 +302,23 @@ static CGFloat _imageHeight = 250;
 }
 -(void)shareUrl{
 
-    JMWebView *web = [[JMWebView alloc]init];
+
+    [JMPorductDetailTool getSearchWithProID:self.productID completionHandler:^(id obj) {
+        
+        
+            ShareToSIna *share = [[ShareToSIna alloc]init];
+        NSDictionary *dataProduct = obj[@"data"];
+        JMProductDetailModel *model = [JMProductDetailModel objectWithKeyValues:dataProduct];
+        JMListDetailProductModel *listModel = model.product;
+        
+        share.share_title = listModel.title;
+        share.share_url = listModel.url;
+        [share.view setNeedsDisplay];
+    [self.navigationController pushViewController:share animated:YES];
     
-    web.url = self.url;
+    }];
+
     
-    [self.navigationController pushViewController:web animated:YES];
 }
 
 - (void)backAction:(UIButton *)btn
@@ -215,6 +357,7 @@ static CGFloat _imageHeight = 250;
 {
     JMProductCommentCell *cell = [JMProductCommentCell cellWithTableView:tableView];
     cell.model = _comments[indexPath.row];
+    
     return cell;
  
 }

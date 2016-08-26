@@ -10,6 +10,8 @@
 #import "JMMainViewController.h"
 #import "XYBFirstViewController.h"
 #import "JMNaviViewController.h"
+#import <SMS_SDK/SMSSDK.h>
+#import <BmobSDK/Bmob.h>
 @interface AppDelegate ()
 
 @end
@@ -18,13 +20,27 @@
 
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-    // Override point for customization after application launch.
-//    XYBFirstViewController *login = [[XYBFirstViewController alloc]init];
-//    UINavigationController *nav = [[UINavigationController alloc]initWithRootViewController:login];
-    JMMainViewController *main = [[JMMainViewController alloc]init];
+ 
     
-    self.window.rootViewController = main
-    ;
+    
+    [SMSSDK registerApp:SMSappKey withSecret:SMSappSecret];
+    
+     [Bmob registerWithAppKey:BmobAppkey];
+    
+    BmobUser *bUser = [BmobUser getCurrentUser];
+    if (bUser) {
+        //进行操作
+        self.window.rootViewController = [[JMMainViewController alloc]init];
+        
+    }else{
+        XYBFirstViewController *login = [[XYBFirstViewController alloc]init];
+        UINavigationController *nav = [[UINavigationController alloc]initWithRootViewController:login];
+ 
+        self.window.rootViewController = nav;
+    }
+    
+ 
+//    ;
     return YES;
 }
 

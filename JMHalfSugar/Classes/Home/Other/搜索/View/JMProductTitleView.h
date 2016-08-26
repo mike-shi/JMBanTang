@@ -7,9 +7,9 @@
 //
 
 #import <UIKit/UIKit.h>
-@class JMProductDetailModel;
+@class JMListDetailProductModel;
 
 @interface JMProductTitleView : UIView
-@property (nonatomic, strong) JMProductDetailModel *model;
+@property (nonatomic, strong) JMListDetailProductModel *model;
 @property (nonatomic, assign) CGFloat contentOffsetY;
 @end

@@ -1,10 +1,4 @@
-//
-//  JMCommentModel.m
-//  JMHalfSugar
-//
-//  Created by Jimmy on 16/6/16.
-//  Copyright © 2016年 HDCircles. All rights reserved.
-//
+
 
 #import "JMCommentModel.h"
 #import "JMAuthor.h"
@@ -14,6 +8,17 @@
     JMCommentModel *model = [[JMCommentModel alloc]init];
     [model setValuesForKeysWithDictionary:dict];
     return model;
+}
+
+-(NSDictionary *)replacedKeyFromPropertyName{
+
+    return @{
+             @"createTime":@"datestr",
+             @"headerImageURL":@"avatar",
+             @"content":@"conent"
+             
+             };
+
 }
 - (void)setValue:(id)value forUndefinedKey:(NSString *)key
 {

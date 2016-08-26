@@ -79,7 +79,7 @@
         
         viewController.hidesBottomBarWhenPushed = YES;
         
-        UIBarButtonItem *backItem=[UIBarButtonItem itemWithTarget:self action:@selector(popView) image:@"navigationbar_back" highImage:@"mobile-back"];
+        UIBarButtonItem *backItem=[UIBarButtonItem itemWithTarget:self action:@selector(popView) image:@"mobile-back" highImage:nil];
         
         viewController.navigationItem.leftBarButtonItem=backItem;
         

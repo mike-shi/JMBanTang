@@ -9,9 +9,7 @@
 #import <Foundation/Foundation.h>
 //清单推荐Model
 @interface JMProductRecommendModel : NSObject
-/*
- *  清单ID
- */
+
 @property (nonatomic, copy) NSString *productID;
 /*
  *  一级标题

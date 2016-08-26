@@ -7,13 +7,13 @@
 //
 
 #import "JMPersonCenterListCell.h"
-#import "JMProductRecommendModel.h"
+#import "JMSearchSingleGoodsModel.h"
 @interface JMPersonCenterListCell ()
 @property (nonatomic, weak) UIImageView *imageView;
 @property (nonatomic, weak) UILabel *likeLabel;
 @property (nonatomic, weak) UILabel *titleLabel;
 @property (nonatomic, copy) NSString *listID;
-@property (nonatomic, strong) JMProductRecommendModel *model;
+@property (nonatomic, strong) JMSearchSingleGoodsModel *model;
 @end
 @implementation JMPersonCenterListCell
 - (instancetype)initWithFrame:(CGRect)frame
@@ -48,17 +48,18 @@
     [self.contentView addSubview:imageView];
     self.imageView = imageView;
 }
-- (void)setModel:(JMProductRecommendModel *)model
+- (void)setModel:(JMSearchSingleGoodsModel *)model
 {
     _model = model;
     if (_model) {
         [self.imageView sd_setImageWithURL:[NSURL URLWithString:_model.imageUrl] placeholderImage:[UIImage imageNamed:@"placeHolder"]];
-        self.likeLabel.text = [NSString stringWithFormat:@"喜欢:%@", _model.likes];
-        self.titleLabel.text  = _model.title;
+        
+        self.likeLabel.text = [NSString stringWithFormat:@"喜欢:%@", _model.likeNumbers];
+        self.titleLabel.text  = _model.productName;
         self.listID  = _model.productID;
     }
 }
-+ (instancetype)cellWithCollectionView:(UICollectionView *)collectionView atIndexPath:(NSIndexPath *)indexPath andModel:(JMProductRecommendModel *)model
++ (instancetype)cellWithCollectionView:(UICollectionView *)collectionView atIndexPath:(NSIndexPath *)indexPath andModel:(JMSearchSingleGoodsModel *)model
 {
     static NSString *reuseIdentifier = @"JMPersonCenterListCell";
     JMPersonCenterListCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:reuseIdentifier forIndexPath:indexPath];

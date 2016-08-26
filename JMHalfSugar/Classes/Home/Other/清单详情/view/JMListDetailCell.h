@@ -22,11 +22,16 @@ typedef enum : NSUInteger {
 
 @protocol JMListDetailCellDelegate <NSObject>
 
-//check the details of product
-- (void)checkProductDetails:(NSInteger)productID;
-- (void)clickCenterWithType:(ListDetailCellClickType)clickType atIndexPath:(NSIndexPath *)indexPath;
+-(void)
+
+////check the details of product
+//- (void)checkProductDetails:(NSInteger)productID;
+//- (void)clickCenterWithType:(ListDetailCellClickType)clickType atIndexPath:(NSIndexPath *)indexPath;
 @end
 @interface JMListDetailCell : UITableViewCell
 @property (nonatomic, weak ) id<JMListDetailCellDelegate> delegate;
-+ (instancetype)cellWithTableView:(UITableView *)tableView atIndexPath:(NSIndexPath *)indexPath withModel:(JMListDetailProductModel *)model;
+@property(nonatomic,strong)JMListDetailProductModel *model;
+
++(instancetype)cellWithTableView:(UITableView *)tableView;
+
 @end

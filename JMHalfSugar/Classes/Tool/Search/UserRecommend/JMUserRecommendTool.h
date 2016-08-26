@@ -7,7 +7,11 @@
 //
 
 #import <Foundation/Foundation.h>
-
+typedef void (^MyCallback)(id obj);
 @interface JMUserRecommendTool : NSObject
-+ (NSArray *)createUserRecommendModelWithListID:(NSString *)listID;
+
+
+//+ (NSArray *)createUserRecommendModelWithListID:(NSString *)listID;
+
++ (id)getSearchWithListID:(NSString *)ListID completionHandler:(MyCallback)callback;
 @end

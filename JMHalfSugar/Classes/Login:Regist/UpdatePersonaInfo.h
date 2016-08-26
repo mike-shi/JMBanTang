@@ -24,5 +24,6 @@
 
 @property(nonatomic,copy)NSString *name;
 @property(nonatomic,copy)NSString *desc;
+@property(nonatomic,copy)NSString *image;
 
 @end

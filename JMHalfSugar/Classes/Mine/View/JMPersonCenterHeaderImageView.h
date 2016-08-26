@@ -12,5 +12,5 @@
 {
    @public void (^clickedImage)(void);
 }
-- (void)changeAvatar:(UIImage *)image;
+- (void)changePersonInfo:(UIImage *)image Name:(NSString *)name Desc:(NSString *)desc;
 @end

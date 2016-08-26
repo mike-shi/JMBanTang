@@ -9,11 +9,15 @@
 #import "JMMainViewController.h"
 #import "JMNaviViewController.h"
 #import "JMHomeViewController.h"
-#import "JMMessageViewController.h"
+//#import "JMMessageViewController.h"
 #import "JMSquareViewController.h"
 #import "JMMineViewController.h"
 #import "JMAlbumViewController.h"
 #import "JMTabBar.h"
+
+#import "WMPageController.h"
+#import "JMTongZhiViewTable.h"
+#import "JMCommentView.h"
 @interface JMMainViewController ()<JMTabBarDelegate>
 @property (nonatomic, strong) JMTabBar *customTabBar;
 @property (nonatomic, assign) NSInteger selectIndex;
@@ -53,8 +57,20 @@
     [self setUpOneChildViewController:home title:@"" image:[UIImage imageNamed:@"Home_unselected"] selectedImage:[UIImage imageNamed:@"Home_selected"]];
     
     //Message
-    JMMessageViewController *message = [JMMessageViewController new];
-    [self setUpOneChildViewController:message title:@"Message" image:[UIImage imageNamed:@"Message_normal"] selectedImage:[UIImage imageNamed:@"Message_selected"]];
+//    JMMessageViewController *message = [JMMessageViewController new];
+    NSArray *viewControllers = @[[JMTongZhiViewTable class], [JMCommentView class]];
+    NSArray *titles = @[@"通知",@"评论"];
+    
+    WMPageController *pageVC = [[WMPageController alloc] initWithViewControllerClasses:viewControllers andTheirTitles:titles];
+    pageVC.menuHeight = 54;
+    pageVC.menuItemWidth = 100;
+    pageVC.menuViewStyle = WMMenuViewStyleLine;
+    pageVC.titleSizeSelected = 15;
+    pageVC.showOnNavigationBar = YES;
+    pageVC.menuBGColor = [UIColor clearColor];
+    pageVC.menuViewLayoutMode = WMMenuViewLayoutModeCenter;
+    
+    [self setUpOneChildViewController:pageVC title:@"Message" image:[UIImage imageNamed:@"Message_normal"] selectedImage:[UIImage imageNamed:@"Message_selected"]];
     
     //Square
     JMSquareViewController *square = [JMSquareViewController new];

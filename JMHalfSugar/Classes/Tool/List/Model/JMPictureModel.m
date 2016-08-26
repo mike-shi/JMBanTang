@@ -9,6 +9,17 @@
 #import "JMPictureModel.h"
 
 @implementation JMPictureModel
+-(NSDictionary *)replacedKeyFromPropertyName{
+
+    return @{
+             @"imageUrl":@"url",
+             @"im_width":@"width",
+             @"im_height":@"height"
+             
+             };
+}
+
+
 - (void)setImageUrl:(NSString *)imageUrl
 {
     if (imageUrl.length < 30 && imageUrl.length>0) {

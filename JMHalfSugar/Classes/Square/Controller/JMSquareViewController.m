@@ -19,7 +19,14 @@
 #import "JMSquareTool.h"
 #import "JMSquareModel.h"
 #import "JMSerchLishModel.h"
-@interface JMSquareViewController ()<JMTitleScrollViewDelegate,UICollectionViewDataSource,UICollectionViewDelegateFlowLayout,JMSegmentViewDelegate>
+
+
+#import "JMSingleGoodsViewController.h"
+#import "JMSearchTool.h"
+#import "JMSearchSingleGoodsModel.h"
+
+
+@interface JMSquareViewController ()<JMTitleScrollViewDelegate,UICollectionViewDataSource,UICollectionViewDelegate,UICollectionViewDelegateFlowLayout,JMSegmentViewDelegate>
 @property (nonatomic, weak)UICollectionView *showCollectionView;
 @property (nonatomic, weak)JMSegmentView *segmentView;
 @property (nonatomic, weak)UICollectionView *categoryCollectionView;
@@ -153,7 +160,7 @@
 }
 - (void)clickSegmentViewAtIndex:(NSInteger)index
 {
-    NSLog(@"Square");
+    NSLog(@"%ld",(long)index);
 }
 
 #pragma mark - UICollectionViewDataSource
@@ -186,6 +193,52 @@
     }
     
 }
+
+-(void)searchForText:(NSString *)text{
+    JMSingleGoodsViewController *singleGoods = [[JMSingleGoodsViewController alloc]init];
+    
+    
+    //    NSLog(@"%@",model.name);
+    [JMSearchTool getSearchWithText:text completionHandler:^(id obj) {
+        NSArray *dataArray = obj[@"data"];
+        
+        NSArray *arr = [JMSearchSingleGoodsModel objectArrayWithKeyValuesArray:dataArray];
+        
+        
+        
+        [singleGoods.singleModels addObjectsFromArray:arr];
+        
+        singleGoods.title = text;
+        [singleGoods.collectionView reloadData];
+    }];
+    
+    //        [singleGoods.singleModels  addObjectsFromArray:[JMSearchTool createSearchSingleGoodsModelByStr:@"mk"]];
+    
+    [self.navigationController pushViewController:singleGoods animated:YES];
+    
+    
+}
+#pragma mark - UICollectionViewDelegate
+- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath{
+
+    if (collectionView == self.showCollectionView) {
+ 
+        JMSerchLishModel *model = self.elements[indexPath.row];
+        
+        [self searchForText:model.name];
+//        NSLog(@"%@",model.name);
+        
+    }else {
+        JMPlantGrassTeamModel *team = self.teamModels[indexPath.row];
+        
+        NSLog(@"%@",team.teamID);
+        
+        
+    }
+
+    
+}
+
 #pragma mark - UICollectionViewDelegateFlowLayout
 - (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath
 {

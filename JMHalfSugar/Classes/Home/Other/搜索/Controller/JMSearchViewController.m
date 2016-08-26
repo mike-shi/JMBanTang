@@ -16,6 +16,8 @@
 #import "JMSerchLishModel.h"
 #import "JMSearchListCell.h"
 
+#import "JMSearchSingleGoodsModel.h"
+#import "JMSearchModel.h"
 @interface JMSearchViewController ()<UISearchBarDelegate,UICollectionViewDataSource,UICollectionViewDelegateFlowLayout,JMSegmentViewDelegate,JMINventoryViewDelegate>
 @property (nonatomic, weak)UISearchBar *searchBar;
 @property (nonatomic, weak)UIView *naviBgView;
@@ -26,6 +28,9 @@
 @property (nonatomic, strong)NSMutableArray<JMSearchModel *> *searchSingleModels;
 @property (nonatomic, strong)NSMutableArray<JMSearchModel *> *subSearchModels;
 @property (nonatomic, strong)NSMutableArray<JMSerchLishModel *> *searchListModels;
+
+@property(nonatomic,strong)UIView *searchField;
+@property(nonatomic,strong)NSArray *searchArr;
 @end
 
 @implementation JMSearchViewController
@@ -56,17 +61,15 @@
     // Do any additional setup after loading the view.
     [self loadData];
     [self initializedSubviews];
+    [self createSearchField];
 }
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:YES];
     [self.navigationController setNavigationBarHidden:YES];
 }
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
-    [[SDImageCache alloc] clearDisk];
-}
+
+
 #pragma mark - loading data
 - (void)loadData
 {
@@ -78,21 +81,7 @@
 - (void)initializedSubviews
 {
     [self createCustomNavgationBar];
-    /*//
-     UISearchBar *searchBar  = [[UISearchBar alloc]initWithFrame:CGRectMake(50, 0, JMDeviceWidth-60, 44)];
-     searchBar.layer.cornerRadius = 20.0f;
-     for (UIView *view in searchBar.subviews) {
-     if ([view isKindOfClass:[UITextField class]]) {
-     view.layer.cornerRadius = 20.0f;
-     }
-     }
-     [searchBar setTintColor:[UIColor whiteColor]];
-     searchBar.delegate = self;
-     searchBar.placeholder = @"搜索单品、清单、帖子、用户";
-     [searchBar setPositionAdjustment:UIOffsetMake(30, 0) forSearchBarIcon:UISearchBarIconSearch];
-     [self.navigationController.navigationBar insertSubview:searchBar aboveSubview:self.navigationController.navigationBar];
-     _searchBar = searchBar;*/
-    //
+
     JMSegmentView *segmentView =[[JMSegmentView alloc]initWithFrame:CGRectMake(0, _naviBgView.height, JMDeviceWidth, 44) firstTitle:@"清单" secondTitle:@"单品"];
     segmentView.delegate = self;
     [self.view addSubview:segmentView];
@@ -170,18 +159,111 @@
 {
     [self.navigationController popViewControllerAnimated:YES];
 }
+-(void)createSearchField{
+
+    UIView *searchField = [[UIView alloc]init];
+    searchField.frame = CGRectMake(0, 64, KScreenWith, self.view.height-64);
+    [self.view addSubview:searchField];
+    _searchField = searchField;
+    _searchField.backgroundColor = HWColor(240, 240, 240);
+    _searchField.hidden = YES;
+    
+    UILabel *titleLabel = [UILabel new];
+    titleLabel.text = @"热门搜索";
+    
+    int  kAppViewW =60;
+    int  kAppViewH =30;
+    int tolcol =5;
+    int  appx=(self.view.bounds.size.width-tolcol*kAppViewW)/(tolcol+1);
+    int appy=10;
+    NSArray *titleArr = @[@"手机壳",@"宿舍",@"双肩包",@"钱包",@"杯子",@"性冷淡",@"手表",@"笔袋",@"耳机",@"泳衣",@"水杯",@"礼物",@"书包",@"充电宝",@"睡衣",];
+    _searchArr = titleArr;
+    for (int i=0; i<15; i++) {
+        int col=i%tolcol;
+        int row=i/tolcol;
+        
+        CGFloat x=appx+col*(appx+kAppViewW);
+        CGFloat y=appy+row*(appy+kAppViewH) +10;
+        
+        
+        UIButton *btn = [[UIButton alloc]init];
+        btn.frame=CGRectMake(x,y, kAppViewW, kAppViewH);
+
+        [_searchField addSubview:btn];
+    
+        NSDictionary *dict = @{
+                               NSFontAttributeName:[UIFont systemFontOfSize:13],
+                               NSForegroundColorAttributeName:[UIColor blackColor]
+                               };
+        NSAttributedString *str = [[NSAttributedString alloc]initWithString:titleArr[i] attributes:
+                                   dict];
+        [btn setAttributedTitle:str forState:UIControlStateNormal];
+//        [btn setTitle:titleArr[i] forState:UIControlStateNormal];
+        btn.tag = i+20;
+        btn.layer.cornerRadius = 10;
+        btn.backgroundColor = [UIColor whiteColor];
+        [btn addTarget:self action:@selector(searchForID:) forControlEvents:UIControlEventTouchUpInside];
+    }
+    
+}
+-(void)searchForID:(UIButton *)btn{
+    
+    NSString *str= _searchArr[btn.tag-20];
+//    NSLog(@"%@",str);
+    _searchBar.text = str;
+    
+    [self searchForText:str];
+    
+    
+}
 #pragma mark - UISearchBarDelegate
 - (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar
 {
     [searchBar setShowsCancelButton:YES animated:YES];
+
+    _searchField.hidden = NO;
+
+    
 }
-- (void)searchBarTextDidEndEditing:(UISearchBar *)searchBar
-{
-    [searchBar setShowsCancelButton:NO animated:YES];
+-(void)searchForText:(NSString *)text{
+    JMSingleGoodsViewController *singleGoods = [[JMSingleGoodsViewController alloc]init];
+    
+    
+    //    NSLog(@"%@",model.name);
+    [JMSearchTool getSearchWithText:text completionHandler:^(id obj) {
+        NSArray *dataArray = obj[@"data"];
+        
+        NSArray *arr = [JMSearchSingleGoodsModel objectArrayWithKeyValuesArray:dataArray];
+        
+        
+        
+        [singleGoods.singleModels addObjectsFromArray:arr];
+        
+        singleGoods.title = text;
+        [singleGoods.collectionView reloadData];
+    }];
+    
+    //        [singleGoods.singleModels  addObjectsFromArray:[JMSearchTool createSearchSingleGoodsModelByStr:@"mk"]];
+    
+    [self.navigationController pushViewController:singleGoods animated:YES];
+
+    
 }
+- (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar{
+    [self searchForText:_searchBar.text];
+    
+    _searchField.hidden = YES;
+    
+   [searchBar setShowsCancelButton:YES animated:YES];
+}
+
 - (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar
 {
     [searchBar resignFirstResponder];
+    _searchField.hidden = YES;
+
+    [searchBar setShowsCancelButton:NO animated:YES];
+
 }
 
 #pragma mark - UICollectionViewDataSource
@@ -193,6 +275,8 @@
 {
     JMSearchListCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"ListCell" forIndexPath:indexPath];
     cell.searchListModel = self.searchListModels[indexPath.row];
+    
+    
     return cell;
 }
 #pragma mark - UICollectionViewDelegateFlowLayout
@@ -217,11 +301,31 @@
     }
 }
 #pragma mark - JMINventoryViewDelegate
-- (void)didSelectedItem:(NSIndexPath *)indexPath
+
+
+- (void)didSelectedItem:(NSString *)name
 {
-    JMSingleGoodsViewController *singleGoods = [[JMSingleGoodsViewController alloc]init];
     
-    [self.navigationController pushViewController:singleGoods animated:YES];
+    [self searchForText:name];
+//    JMSingleGoodsViewController *singleGoods = [[JMSingleGoodsViewController alloc]init];
+//
+////    NSLog(@"%@---inde%@",model.name,indexPath);
+//    [JMSearchTool getSearchWithText:list.name completionHandler:^(id obj) {
+//        NSArray *dataArray = obj[@"data"];
+//        
+//        NSArray *arr = [JMSearchSingleGoodsModel objectArrayWithKeyValuesArray:dataArray];
+//        
+//        
+//        
+//        [singleGoods.singleModels addObjectsFromArray:arr];
+//        
+//        singleGoods.title = model.name;
+//        [singleGoods.collectionView reloadData];
+//    }];
+//    
+////        [singleGoods.singleModels  addObjectsFromArray:[JMSearchTool createSearchSingleGoodsModelByStr:@"mk"]];
+//    
+//    [self.navigationController pushViewController:singleGoods animated:YES];
 }
 #pragma mark - JMSegmentViewDelegate
 - (void)clickSegmentViewAtIndex:(NSInteger)index

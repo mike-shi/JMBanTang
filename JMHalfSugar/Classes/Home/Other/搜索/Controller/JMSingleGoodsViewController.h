@@ -10,4 +10,6 @@
 @class JMSearchModel;
 @interface JMSingleGoodsViewController : UIViewController
 @property (nonatomic, strong) JMSearchModel *searchModel;
+@property (nonatomic, strong) NSMutableArray *singleModels;
+@property (nonatomic, weak) UICollectionView *collectionView;
 @end

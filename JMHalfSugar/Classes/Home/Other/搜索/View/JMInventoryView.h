@@ -11,7 +11,7 @@
 
 @protocol JMINventoryViewDelegate <NSObject>
 
-- (void)didSelectedItem:(NSIndexPath *)indexPath;
+- (void)didSelectedItem:(NSString *)name;
 
 @end
 @interface JMInventoryView : UIView

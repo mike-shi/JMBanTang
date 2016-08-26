@@ -1,4 +1,6 @@
 //
+
+//
 //  JMProductDetailModel.h
 //  JMHalfSugar
 //
@@ -7,8 +9,8 @@
 //
 
 #import "JMListDetailProductModel.h"
-@class JMCommentModel,JMCommentUsersModel;
-@interface JMProductDetailModel : JMListDetailProductModel
+@class JMCommentModel,JMListDetailProductModel;
+@interface JMProductDetailModel : NSObject;
 /*
  *  comment list
  */
@@ -20,7 +22,10 @@
 /*
  *  like users
  */
-@property (nonatomic, strong) NSArray *likeUser;
+@property (nonatomic, strong) NSArray *likes_list;
+
+
+@property(nonatomic,strong)JMListDetailProductModel *product;
 
 
 /*
@@ -34,5 +39,5 @@
  commodity,
  iscomments
  */
-+ (instancetype)productDetailModelWithDictionary:(NSDictionary *)dict;
+//+ (instancetype)productDetailModelWithDictionary:(NSDictionary *)dict;
 @end

@@ -21,13 +21,15 @@
     
 //    [self.navigationController setNavigationBarHidden:NO];
 
+    self.automaticallyAdjustsScrollViewInsets = NO;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     // 1.创建一个webView
-    UIWebView *webView = [[UIWebView alloc] init];
-    webView.frame = self.view.bounds;
+    self.navigationItem.title = @"购买";
+    UIWebView *webView = [[UIWebView alloc] initWithFrame:CGRectMake(0, 0, KScreenWith, self.view.height-64)];
+//    webView.frame = self.view.bounds;
     webView.delegate = self;
     [self.view addSubview:webView];
     _webView = webView;

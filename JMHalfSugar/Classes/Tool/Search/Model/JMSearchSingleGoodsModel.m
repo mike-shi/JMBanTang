@@ -7,23 +7,19 @@
 //
 
 #import "JMSearchSingleGoodsModel.h"
-#import "JMAuthor.h"
+#import "MJExtension.h"
 @implementation JMSearchSingleGoodsModel
-+ (instancetype)searchSingleGoodsWithDictionary:(NSDictionary *)dictionary
-{
-    JMSearchSingleGoodsModel *model = [JMSearchSingleGoodsModel new];
-    [model setValuesForKeysWithDictionary:dictionary];
-    return model;
-}
-- (void)setValue:(id)value forUndefinedKey:(NSString *)key
-{
-    [super setValue:value forUndefinedKey:key];
-    if ([key isEqualToString:@"pic"]) {
-        _imageUrl = value;
-    }
-    if ([key isEqualToString:@"user"]) {
-        [_author setValuesForKeysWithDictionary:value];
-    }
-//    NSLog(@"yes");
+
+-(NSDictionary *)replacedKeyFromPropertyName{
+
+    return @{
+             @"productID":@"id",
+                  @"productName":@"title",
+                  @"imageUrl":@"url",
+                  @"detailText":@"desc",
+                  @"likeNumbers":@"likes"
+             
+             };
+
 }
 @end

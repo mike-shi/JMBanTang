@@ -10,6 +10,9 @@
 #import "JMSearchModel.h"
 #import "JMSerchLishModel.h"
 #import "JMSearchSingleGoodsModel.h"
+#import "MJExtension.h"
+#import "AFNetworking.h"
+#import "NSObject+AFNetworking.h"
 @implementation JMSearchTool
 + (NSMutableArray *)createSearchModel
 {
@@ -41,25 +44,119 @@
     return searchArr;
     
     return nil;
+
 }
-+ (NSArray *)createSearchSingleGoodsModel
-{
-    NSString *path = [[NSBundle mainBundle]pathForResource:@"底妆" ofType:nil];
-    NSData *jsonData = [NSData dataWithContentsOfFile:path];
-    NSError *error = nil;
-    NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:jsonData options:NSJSONReadingAllowFragments error:&error];
-    if (error) {
-        return nil;
-    }
-    NSArray *dataArray = dict[@"data"][@"list"];
-    NSMutableArray *singleGoods = [NSMutableArray array];
-    [dataArray enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        JMSearchSingleGoodsModel *model = [JMSearchSingleGoodsModel searchSingleGoodsWithDictionary:obj];
-        [singleGoods addObject:model];
+
++(id)getRelationWithObjID:(NSString *)proID completionHandler:(MyCallback)callback{
+
+    //http://open4.bantangapp.com/product/relation?
+//    app_id=com.jzyd.BanTang&client_id=bt_app_android&client_secret=ffcda7a1c4ff338e05c42e7972ba7b8d&track_user_id=&oauth_token=&track_deviceid=866656025428444&track_device_info=ALE-TL00&channel_name=UMENG_CHANNEL&app_installtime=1470240517&app_versions=5.8.6&os_versions=5.0.2&screensize=720&v=18&object_id=185223&type_id=2
+    
+    NSMutableDictionary *params = [NSMutableDictionary dictionary];
+    params[@"app_id"] = @"com.jzyd.BanTang";
+    params[@"client_id"] = @"bt_app_android";
+    params[@"client_secret"] = @"ffcda7a1c4ff338e05c42e7972ba7b8d";
+//    params[@"track_user_id"] = @"http://www.baidu.com";
+    params[@"track_deviceid"] = @"866656025428444";
+    params[@"track_device_info"] = @"ALE-TL00";
+    params[@"channel_name"] = @"UMENG_CHANNEL";
+    params[@"app_installtime"] = @"1470240517";
+    params[@"app_versions"] = @"5.8.6";
+    params[@"os_versions"] = @"5.0.2";
+    params[@"screensize"] = @"720";
+    params[@"v"] = @"18";
+    params[@"object_id"] = proID;
+//    params[@"sort_type"] = @"0";
+//    params[@"page"] = @"0";
+    params[@"type_id"] = @"2";
+    
+    return [self GET:@"http://open4.bantangapp.com/product/relation" parameters:params progress:nil completionHandler:^(id responseObj, NSError *error) {
+        callback(responseObj);
     }];
-    return singleGoods;
     
 }
+
++ (id)getSearchWithText:(NSString *)text completionHandler:(MyCallback)callback{
+
+    NSMutableDictionary *params = [NSMutableDictionary dictionary];
+    params[@"app_id"] = @"com.jzyd.BanTang";
+    params[@"client_id"] = @"bt_app_android";
+    params[@"client_secret"] = @"ffcda7a1c4ff338e05c42e7972ba7b8d";
+    params[@"track_user_id"] = @"http://www.baidu.com";
+    params[@"track_deviceid"] = @"866656025428444";
+    params[@"track_device_info"] = @"ALE-TL00";
+    params[@"channel_name"] = @"UMENG_CHANNEL";
+    params[@"app_installtime"] = @"1470240517";
+    params[@"app_versions"] = @"5.8.6";
+    params[@"os_versions"] = @"5.0.2";
+    params[@"screensize"] = @"720";
+    params[@"v"] = @"18";
+    params[@"keyword"] = text;
+    params[@"sort_type"] = @"0";
+    params[@"page"] = @"0";
+    params[@"pagesize"] = @"20";
+    
+    return [self GET:@"http://open4.bantangapp.com/search/product/listByKeyword" parameters:params progress:nil completionHandler:^(id responseObj, NSError *error) {
+        callback(responseObj);
+    }];
+
+}
+
++ (id)getSearchWithText:(NSString *)text Page:(NSString *)pageNum completionHandler:(MyCallback)callback{
+
+    NSMutableDictionary *params = [NSMutableDictionary dictionary];
+    params[@"app_id"] = @"com.jzyd.BanTang";
+    params[@"client_id"] = @"bt_app_android";
+    params[@"client_secret"] = @"ffcda7a1c4ff338e05c42e7972ba7b8d";
+    params[@"track_user_id"] = @"http://www.baidu.com";
+    params[@"track_deviceid"] = @"866656025428444";
+    params[@"track_device_info"] = @"ALE-TL00";
+    params[@"channel_name"] = @"UMENG_CHANNEL";
+    params[@"app_installtime"] = @"1470240517";
+    params[@"app_versions"] = @"5.8.6";
+    params[@"os_versions"] = @"5.0.2";
+    params[@"screensize"] = @"720";
+    params[@"v"] = @"18";
+    params[@"keyword"] = text;
+    params[@"sort_type"] = @"0";
+    params[@"page"] = pageNum;
+    params[@"pagesize"] = @"20";
+    
+    return [self GET:@"http://open4.bantangapp.com/search/product/listByKeyword" parameters:params progress:nil completionHandler:^(id responseObj, NSError *error) {
+        callback(responseObj);
+    }];
+
+    
+
+}
+
+//+ (NSArray *)createSearchSingleGoodsModelByStr:(NSString *)text
+//{
+//    
+//    AFHTTPSessionManager *mgr = [AFHTTPSessionManager manager];
+//
+//
+//
+//    // 3.发送请求
+//     NSMutableArray *singleGoods = [NSMutableArray array];
+//    [mgr POST:@"http://open4.bantangapp.com/search/product/listByKeyword" parameters:params progress:^(NSProgress * _Nonnull uploadProgress) {
+//        
+//    } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+//
+//        NSArray *dataArray = responseObject[@"data"];
+//
+//        NSArray *arr = [JMSearchSingleGoodsModel objectArrayWithKeyValuesArray:dataArray];
+//
+//        [singleGoods addObjectsFromArray:arr];
+//        
+//    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+// 
+//        HWLog(@"请求失败-%@", error);
+//    }];
+//    
+//    return singleGoods;
+//    
+//}
 
 
 @end

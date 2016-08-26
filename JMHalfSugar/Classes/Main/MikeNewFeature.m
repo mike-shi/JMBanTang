@@ -10,7 +10,7 @@
 #import "JMMainViewController.h"
 //#import "UIFindDocumentPath.h"
 
-#define PageNumber 4
+#define PageNumber 3
 @interface MikeNewFeature ()<UIScrollViewDelegate>
 @property(nonatomic,strong)UIPageControl *pageC;
 @property(nonatomic,strong)UIScrollView *scr;
@@ -36,6 +36,9 @@
     scroll.bounces=NO;
     scroll.pagingEnabled=YES;
     scroll.showsHorizontalScrollIndicator=NO;
+    
+    NSArray *arr = @[@"引导1_2208_1242x2208_@1x",@"引导2_2208_1242x2208_@1x",@"引导3_2208_1242x2208_@1x"];
+    
     for (int i=0; i<PageNumber; i++) {
         UIImageView *image=[[UIImageView alloc]init];
        
@@ -44,8 +47,8 @@
         image.height=scrH;
         image.x=i*scrW;
         image.y=0;
-        NSString *imgName=[NSString stringWithFormat:@"new_feature_%d",i+1];
-        image.image=[UIImage imageNamed:imgName];
+//        NSString *imgName=[NSString stringWithFormat:arr[i]];
+        image.image=[UIImage imageNamed:arr[i]];
         
         if (i == PageNumber - 1) {
             [self setupLastImageView:image];

@@ -35,7 +35,8 @@
     self.commentTimeLabel.textColor = HWColor(100, 100, 100);
     
     self.likeButton.titleEdgeInsets = UIEdgeInsetsMake(0, 4, 0, 0);
-    [self.likeButton setImage:[UIImage imageNamed:@"iconfont-icondianzan"] forState:UIControlStateNormal];
+//    self.likeButton.imageView.backgroundColor = HWColor(150, 150, 150);
+    [self.likeButton setImage:[UIImage imageNamed:@"btn_praise_no_17x15_"] forState:UIControlStateNormal];
     [self.likeButton setImage:[UIImage imageNamed:@"iconfont-icondianzanhou"] forState:UIControlStateSelected];
     [self.likeButton setTitle:@"0" forState:UIControlStateNormal];
     [self.likeButton setTitleColor:JMSubTitleColor forState:UIControlStateNormal];
@@ -52,6 +53,10 @@
     [sender setTitle:_model.praiseCount forState:UIControlStateNormal];
     sender.selected = !sender.selected;
     _model.is_praise = !_model.is_praise;
+    
+    if (newPraiseCount == 0) {
+         [sender setTitle:@"" forState:UIControlStateNormal];
+    }
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {
